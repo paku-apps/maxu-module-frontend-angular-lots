@@ -1,0 +1,37 @@
+@let s = stats();
+
+<div class="stats">
+  <div class="stat">
+    <span class="value">{{ fmtInt(s?.lotes) }}</span>
+    <span class="label">Lotes</span>
+  </div>
+
+  <div class="stat">
+    <span class="value">{{ fmtInt(s?.manzanas) }}</span>
+    <span class="label">Manzanas</span>
+  </div>
+
+  <div class="stat">
+    <span class="value">{{ fmtInt(s?.con_area_m2) }}</span>
+    <span class="label">Con área</span>
+    <span class="bar"><i [style.width.%]="ratio(s?.con_area_m2)"></i></span>
+  </div>
+
+  <div class="stat">
+    <span class="value">{{ fmtInt(s?.con_numero) }}</span>
+    <span class="label">Con número</span>
+    <span class="bar"><i [style.width.%]="ratio(s?.con_numero)"></i></span>
+  </div>
+
+  <div class="stat">
+    <span class="value">{{ fmtInt(s?.con_frente) }}</span>
+    <span class="label">Con frente</span>
+    <span class="bar"><i [style.width.%]="ratio(s?.con_frente)"></i></span>
+  </div>
+
+  <button type="button" class="stat review" (click)="openReview.emit()">
+    <span class="value">{{ fmtInt(s?.review_pending) }}</span>
+    <span class="label">Revisión pendiente</span>
+    <span class="dot"></span>
+  </button>
+</div>

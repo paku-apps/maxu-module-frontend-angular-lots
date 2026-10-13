@@ -1,0 +1,149 @@
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">▦</span>
+      <div>
+        <h1>Segmentación de planos</h1>
+        <p>Explorador catastral de lotes y manzanas</p>
+      </div>
+    </div>
+
+    <app-stats-bar [stats]="store.stats()" (openReview)="toggleReview()" />
+
+    <div class="tools">
+      <div class="seg">
+        <button type="button" [class.on]="colorMode() === 'review'" (click)="setColorMode('review')">
+          Revisión
+        </button>
+        <button type="button" [class.on]="colorMode() === 'area'" (click)="setColorMode('area')">
+          Área
+        </button>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" [checked]="showLabels()" (change)="showLabels.set(!showLabels())" />
+        Números
+      </label>
+      <label class="rotate">
+        <span>Rotar</span>
+        <select [value]="rotation()" (change)="setRotation($event)">
+          @for (r of rotations; track r) {
+            <option [value]="r">{{ r }}°</option>
+          }
+        </select>
+      </label>
+      <button type="button" class="btn" (click)="store.bootstrap()" title="Recargar">⟳</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar">
+      <app-manzana-list
+        [manzanas]="store.manzanas()"
+        [selected]="store.selectedManzana()"
+        [loading]="store.loading().manzanas"
+        (select)="store.selectManzana($event)"
+      />
+    </aside>
+
+    <section class="stage">
+      <div class="map-wrap">
+        <app-map-canvas
+          [features]="features()"
+          [selectedId]="store.selectedLoteId()"
+          [colorMode]="colorMode()"
+          [showLabels]="showLabels()"
+          [rotation]="rotation()"
+          (lotSelected)="store.selectLote($event)"
+        />
+
+        <div class="legend">
+          @if (colorMode() === 'review') {
+            <span><i style="background: var(--good)"></i>OK</span>
+            <span><i style="background: var(--warn)"></i>Error área &gt; 5%</span>
+            <span><i style="background: var(--bad)"></i>Revisión</span>
+          } @else {
+            <span><i style="background: var(--good)"></i>Coincide</span>
+            <span><i style="background: var(--warn)"></i>Leve</span>
+            <span><i style="background: var(--bad)"></i>Discrepancia</span>
+            <span><i style="background: var(--missing)"></i>Sin área</span>
+          }
+        </div>
+
+        @if (store.loading().geo) {
+          <div class="map-loading">Cargando cartografía…</div>
+        }
+      </div>
+
+      <div class="strip">
+        @if (store.selectedManzana(); as mz) {
+          <div class="strip-head">
+            <strong>{{ mz }}</strong>
+            <span>{{ lotes().length }} lotes</span>
+            <button type="button" class="link" (click)="store.selectManzana(null)">ver todas</button>
+          </div>
+          <div class="cards">
+            @for (item of lotes(); track item.id) {
+              <button
+                type="button"
+                class="lot-card"
+                [class.active]="store.selectedLoteId() === item.id"
+                (click)="store.selectLote(item.id)"
+              >
+                <span class="lc-top">
+                  <span class="num">{{ item.numero ?? 's/n' }}</span>
+                  <i class="dot" [style.background]="lotColor(item)"></i>
+                </span>
+                <span class="lc-area">{{ fmtNum(item.area_m2, 1) }} m²</span>
+                <span class="lc-id">{{ item.id }}</span>
+              </button>
+            } @empty {
+              <p class="strip-empty">Cargando lotes…</p>
+            }
+          </div>
+        } @else {
+          <div class="strip-idle">
+            <span>Selecciona una manzana para ver su banda de lotes, o haz clic directo en el plano.</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <aside class="inspector">
+      <app-lot-detail
+        [lote]="store.selectedLote()"
+        [loading]="store.loading().lote"
+        [rotation]="rotation()"
+        (correct)="onCorrect($event)"
+        (close)="store.selectLote(null)"
+        (locate)="store.selectLote($event)"
+      />
+    </aside>
+  </main>
+</div>
+
+@if (reviewOpen()) {
+  <div class="overlay" (click)="closeReview()"></div>
+  <aside class="drawer" (click)="$event.stopPropagation()">
+    <app-review-panel
+      [cases]="store.reviewCases()"
+      [total]="store.reviewTotal()"
+      [activeCase]="store.activeReviewCase()"
+      [loading]="store.loading().review"
+      [statusFilter]="reviewStatus()"
+      [priorityFilter]="reviewPriority()"
+      (close)="closeReview()"
+      (filterChange)="onReviewFilter($event)"
+      (openCase)="store.openReviewCase($event)"
+      (save)="store.saveReviewCase($event.id, $event.status, $event.observations)"
+      (back)="store.activeReviewCase.set(null)"
+    />
+  </aside>
+}
+
+<div class="toasts">
+  @for (t of store.toasts(); track t.id) {
+    <div class="toast" [class.error]="t.kind === 'error'" [class.success]="t.kind === 'success'" (click)="store.dismissToast(t.id)">
+      {{ t.text }}
+    </div>
+  }
+</div>

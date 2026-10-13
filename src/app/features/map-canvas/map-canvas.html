@@ -1,0 +1,66 @@
+<div class="map" [class.dragging]="dragging()">
+  <svg
+    #svg
+    class="map-svg"
+    [attr.viewBox]="viewBox()"
+    preserveAspectRatio="xMidYMid meet"
+    (wheel)="onWheel($event)"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp()"
+    (pointerleave)="onPointerUp()"
+  >
+    <g [attr.transform]="transform()">
+      @for (shape of shapes(); track shape.id) {
+        <path
+          class="lot-shape"
+          [class.selected]="shape.id === selectedId()"
+          [class.review]="shape.review"
+          [attr.d]="shape.d"
+          [attr.fill]="shape.color"
+          (mouseenter)="hovered.set(shape)"
+          (mouseleave)="hovered.set(null)"
+          (click)="onShapeClick(shape.id)"
+        />
+      }
+
+      @if (selectedId()) {
+        @for (shape of shapes(); track shape.id) {
+          @if (shape.id === selectedId()) {
+            <path class="lot-outline" [attr.d]="shape.d" />
+          }
+        }
+      }
+
+      @if (showLabels()) {
+        @for (shape of shapes(); track shape.id) {
+          <text
+            class="lot-label"
+            [attr.transform]="'translate(' + shape.cx + ' ' + shape.cy + ') scale(' + 1 / scale() + ')'"
+            [attr.font-size]="view().labelSize"
+            text-anchor="middle"
+            dominant-baseline="central"
+          >{{ shape.numero ?? '·' }}</text>
+        }
+      }
+    </g>
+  </svg>
+
+  <div class="map-controls">
+    <button type="button" title="Acercar" (click)="zoom(1.4)">+</button>
+    <button type="button" title="Alejar" (click)="zoom(1 / 1.4)">−</button>
+    <button type="button" class="fit" title="Ajustar" (click)="fit()">⤢</button>
+  </div>
+
+  @if (hovered(); as h) {
+    <div class="tooltip" [style.left.px]="pointer().x + 14" [style.top.px]="pointer().y + 14">
+      <strong>{{ h.manzana ?? 'Sin manzana' }}</strong>
+      <span>Lote {{ h.numero ?? 's/n' }}</span>
+      <small>{{ h.id }} · {{ h.review ? 'requiere revisión' : 'ok' }}</small>
+    </div>
+  }
+
+  @if (!view().ready) {
+    <div class="empty">Sin geometrías para mostrar.</div>
+  }
+</div>

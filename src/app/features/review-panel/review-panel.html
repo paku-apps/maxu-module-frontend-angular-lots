@@ -1,0 +1,101 @@
+<div class="panel">
+  <header class="panel-head">
+    <div>
+      <h2>Revisión manual</h2>
+      <p>{{ fmtInt(total()) }} casos en cola</p>
+    </div>
+    <button type="button" class="ghost" (click)="close.emit()">✕</button>
+  </header>
+
+  @if (activeCase(); as c) {
+    <div class="case-detail">
+      <button type="button" class="back" (click)="back.emit()">← Volver a la lista</button>
+
+      <div class="case-title">
+        <span class="rid">{{ c.review_id }}</span>
+        <span class="prio" [style.background]="priorityColor(c.priority)">{{ c.priority }}</span>
+      </div>
+
+      <div class="case-kv">
+        <div><span class="k">Lote</span><span class="v">{{ c.lot_id }}</span></div>
+        <div><span class="k">Tipo</span><span class="v">{{ c.type }}</span></div>
+        <div><span class="k">Campo</span><span class="v">{{ c.field }}</span></div>
+        <div><span class="k">Valor detectado</span><span class="v">{{ c.detected_value }}</span></div>
+      </div>
+
+      <p class="reason">{{ c.reason }}</p>
+
+      <label class="field">
+        <span>Estado</span>
+        <select [value]="status()" (change)="onStatusInput($event)">
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Observaciones</span>
+        <textarea
+          rows="4"
+          [value]="observations()"
+          (input)="onObsInput($event)"
+          placeholder="Notas de la revisión…"
+        ></textarea>
+      </label>
+
+      <button type="button" class="primary" (click)="submit()">Guardar cambios</button>
+      <p class="hint">PATCH /review_cases/{{ c.review_id }}</p>
+    </div>
+  } @else {
+    <div class="filters">
+      <div class="chip-row">
+        <span class="chip-label">Estado</span>
+        @for (s of statuses; track s) {
+          <button
+            type="button"
+            class="chip"
+            [class.on]="statusFilter() === s"
+            (click)="toggleStatus(s)"
+          >{{ s }}</button>
+        }
+      </div>
+      <div class="chip-row">
+        <span class="chip-label">Prioridad</span>
+        @for (p of priorities; track p) {
+          <button
+            type="button"
+            class="chip"
+            [class.on]="priorityFilter() === p"
+            [style.borderColor]="priorityFilter() === p ? priorityColor(p) : null"
+            (click)="togglePriority(p)"
+          >{{ p }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="case-list">
+      @if (loading()) {
+        <div class="loading">Cargando casos…</div>
+      }
+      @for (c of cases(); track c.review_id) {
+        <button type="button" class="case-card" (click)="openCase.emit(c.review_id)">
+          <span class="prio-bar" [style.background]="priorityColor(c.priority)"></span>
+          <span class="card-body">
+            <span class="card-top">
+              <span class="rid">{{ c.review_id }}</span>
+              <span class="status" [attr.data-status]="c.status">{{ c.status }}</span>
+            </span>
+            <span class="type">{{ c.type }}</span>
+            <span class="reason">{{ c.reason }}</span>
+            <span class="foot">{{ c.lot_id }} · {{ c.field }} = {{ c.detected_value }}</span>
+          </span>
+        </button>
+      } @empty {
+        @if (!loading()) {
+          <p class="empty">No hay casos con estos filtros.</p>
+        }
+      }
+    </div>
+  }
+</div>

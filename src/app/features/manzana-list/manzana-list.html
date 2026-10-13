@@ -1,0 +1,51 @@
+<div class="sidebar-head">
+  <h2>Manzanas</h2>
+  <span class="count">{{ fmtInt(manzanas().length) }}</span>
+</div>
+
+<input
+  class="search"
+  type="search"
+  placeholder="Buscar manzana…"
+  [value]="query()"
+  (input)="onInput($event)"
+/>
+
+<button
+  type="button"
+  class="mz all"
+  [class.active]="selected() === null"
+  (click)="select.emit(null)"
+>
+  <span class="code">Todas</span>
+  <span class="meta">Ver plano completo</span>
+</button>
+
+<div class="list">
+  @if (loading()) {
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  }
+
+  @for (mz of filtered(); track mz.codigo) {
+    <button
+      type="button"
+      class="mz"
+      [class.active]="selected() === mz.codigo"
+      (click)="select.emit(mz.codigo)"
+    >
+      <span class="row">
+        <span class="code">{{ mz.codigo }}</span>
+        <span class="lots">{{ fmtInt(mz.n_lotes) }} lotes</span>
+      </span>
+      <span class="bar" [title]="'Confianza ' + fmtPct(mz.confidence * 100)">
+        <i [style.width.%]="mz.confidence * 100" [style.background]="confidenceColor(mz.confidence)"></i>
+      </span>
+    </button>
+  } @empty {
+    @if (!loading()) {
+      <p class="no-results">Sin coincidencias.</p>
+    }
+  }
+</div>

@@ -1,0 +1,208 @@
+@let l = lote();
+
+<div class="detail">
+  @if (!l && !loading()) {
+    <div class="idle">
+      <div class="idle-icon">▧</div>
+      <p>Selecciona un lote en el plano o en la banda inferior para ver su ficha.</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Cargando ficha…</div>
+  }
+
+  @if (l) {
+    <header class="head">
+      <div>
+        <span class="mz">{{ l.manzana ?? 'Sin manzana' }}</span>
+        <h2>Lote {{ l.numero ?? 's/n' }}</h2>
+        <span class="id">{{ l.id }}</span>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="ghost" title="Ubicar en el plano" (click)="locate.emit(l.id)">◎</button>
+        <button type="button" class="ghost" title="Cerrar" (click)="close.emit()">✕</button>
+      </div>
+    </header>
+
+    @if (l.review_required) {
+      <div class="flag review">Requiere revisión manual</div>
+    }
+    @if (l.geometry_semantic_mismatch) {
+      <div class="flag warn">Posible desajuste geometría / número</div>
+    }
+    @if (l.area_ambiguous) {
+      <div class="flag warn">Área ambigua</div>
+    }
+
+    <nav class="tabs">
+      <button type="button" [class.active]="tab() === 'resumen'" (click)="tab.set('resumen')">Resumen</button>
+      <button type="button" [class.active]="tab() === 'medidas'" (click)="tab.set('medidas')">Medidas</button>
+      <button type="button" [class.active]="tab() === 'geometria'" (click)="tab.set('geometria')">Geometría</button>
+      <button type="button" [class.active]="tab() === 'corregir'" (click)="tab.set('corregir')">Corregir</button>
+    </nav>
+
+    <div class="body">
+      @switch (tab()) {
+        @case ('resumen') {
+          <div class="kv">
+            <div class="cell">
+              <span class="k">Área documental</span>
+              <span class="v">{{ fmtNum(l.area_m2) }} <em>m²</em></span>
+            </div>
+            <div class="cell">
+              <span class="k">Área geométrica</span>
+              <span class="v">{{ fmtNum(l.area_geom_m2) }} <em>m²</em></span>
+            </div>
+            <div class="cell">
+              <span class="k">Error área</span>
+              <span class="v" [class.bad]="(l.area_error_percent ?? 0) > 5">{{ fmtPct(l.area_error_percent, 1) }}</span>
+            </div>
+            <div class="cell">
+              <span class="k">Estado del área</span>
+              <span class="v">{{ statusLabel(l.area_status) }}</span>
+            </div>
+            <div class="cell">
+              <span class="k">Número original</span>
+              <span class="v">{{ l.numero_original ?? '—' }}</span>
+            </div>
+            <div class="cell">
+              <span class="k">Estado número</span>
+              <span class="v">{{ l.numero_status ?? '—' }}</span>
+            </div>
+            <div class="cell">
+              <span class="k">N.º de medidas</span>
+              <span class="v">{{ fmtInt(l.n_medidas) }}</span>
+            </div>
+            <div class="cell">
+              <span class="k">Revisión</span>
+              <span class="v">{{ l.review_required ? 'Pendiente' : 'OK' }}</span>
+            </div>
+          </div>
+
+          <h4 class="section">Confianza global</h4>
+          <div class="gauge">
+            <div class="gauge-track">
+              <i
+                [style.width.%]="(l.overall_confidence ?? 0) * 100"
+                [style.background]="confidenceColor(l.overall_confidence)"
+              ></i>
+            </div>
+            <span>{{ fmtPct((l.overall_confidence ?? 0) * 100) }}</span>
+          </div>
+
+          @if (confidence().length) {
+            <div class="conf-list">
+              @for (c of confidence(); track c.key) {
+                <div class="conf">
+                  <span class="k">{{ c.key }}</span>
+                  <span class="track"><i [style.width.%]="c.value * 100" [style.background]="confidenceColor(c.value)"></i></span>
+                  <span class="val">{{ fmtPct(c.value * 100) }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        @case ('medidas') {
+          <div class="measures">
+            <div class="measure"><span class="k">Frente <em>M.F</em></span><span class="v">{{ fmtNum(l['M.F']) }} <i>m</i></span></div>
+            <div class="measure"><span class="k">Derecha <em>M.D</em></span><span class="v">{{ fmtNum(l['M.D']) }} <i>m</i></span></div>
+            <div class="measure"><span class="k">Izquierda <em>M.I</em></span><span class="v">{{ fmtNum(l['M.I']) }} <i>m</i></span></div>
+            <div class="measure"><span class="k">Fondo <em>M.P</em></span><span class="v">{{ fmtNum(l['M.P']) }} <i>m</i></span></div>
+          </div>
+
+          <h4 class="section">Colindancias</h4>
+          <ul class="cols">
+            <li><span class="dir n">N</span><span>{{ l['Col Norte'] ?? '—' }}</span></li>
+            <li><span class="dir s">S</span><span>{{ l['Col Sur'] ?? '—' }}</span></li>
+            <li><span class="dir e">E</span><span>{{ l['Col Este'] ?? '—' }}</span></li>
+            <li><span class="dir o">O</span><span>{{ l['Col Oeste'] ?? '—' }}</span></li>
+          </ul>
+        }
+
+        @case ('geometria') {
+          @if (geometry(); as g) {
+            <div class="mini-map">
+              <svg [attr.viewBox]="g.viewBox" preserveAspectRatio="xMidYMid meet">
+                <path [attr.d]="g.d" />
+              </svg>
+            </div>
+          } @else {
+            <p class="empty">Este lote no incluye polígono.</p>
+          }
+
+          <div class="kv compact">
+            <div class="cell">
+              <span class="k">Centroide</span>
+              <span class="v small">
+                {{ fmtNum(l.centroid[0]) }}, {{ fmtNum(l.centroid[1]) }}
+              </span>
+            </div>
+            @if (l.bbox) {
+              <div class="cell">
+                <span class="k">BBox</span>
+                <span class="v small">
+                  {{ fmtNum(l.bbox[0]) }}, {{ fmtNum(l.bbox[1]) }} → {{ fmtNum(l.bbox[2]) }}, {{ fmtNum(l.bbox[3]) }}
+                </span>
+              </div>
+            }
+            <div class="cell">
+              <span class="k">Área geom. (u²)</span>
+              <span class="v">{{ fmtNum(l.area_geom_units2) }}</span>
+            </div>
+            <div class="cell">
+              <span class="k">Fuente área</span>
+              <span class="v small">{{ l.area_source ?? '—' }}</span>
+            </div>
+          </div>
+        }
+
+        @case ('corregir') {
+          <form class="form" (submit)="$event.preventDefault(); submit()">
+            <label>
+              <span>Campo</span>
+              <select [value]="field()" (change)="onFieldChange($event)">
+                @for (f of fields; track f.value) {
+                  <option [value]="f.value">{{ f.label }}</option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Nuevo valor</span>
+              @if (isSelectField()) {
+                <select [value]="newValue()" (change)="onValueInput($event)">
+                  @for (opt of areaStatusOptions; track opt) {
+                    <option [value]="opt">{{ opt }}</option>
+                  }
+                </select>
+              } @else {
+                <input
+                  [type]="isNumberField() ? 'number' : 'text'"
+                  [attr.step]="field() === 'area_m2' ? '0.01' : null"
+                  [value]="newValue()"
+                  (input)="onValueInput($event)"
+                  placeholder="Valor corregido"
+                />
+              }
+            </label>
+
+            <label>
+              <span>Motivo</span>
+              <input type="text" [value]="reason()" (input)="onReasonInput($event)" placeholder="p. ej. verificado en campo" />
+            </label>
+
+            <label>
+              <span>Tipo</span>
+              <input type="text" [value]="kind()" (input)="onKindInput($event)" placeholder="manual" />
+            </label>
+
+            <button type="submit" class="primary">Aplicar corrección</button>
+            <p class="hint">POST /lotes/{{ l.id }}/corrections</p>
+          </form>
+        }
+      }
+    </div>
+  }
+</div>
