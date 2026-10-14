@@ -48,6 +48,85 @@
   border-radius: 3px;
 }
 
+.stat.recovered {
+  cursor: pointer;
+  border-color: rgba(129, 140, 248, 0.4);
+}
+
+.stat.recovered .value {
+  color: var(--accent-2);
+}
+
+.stat.recovered:hover {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.14);
+}
+
+.stat .bar i.indigo {
+  background: linear-gradient(90deg, var(--accent-2), #a78bfa);
+}
+
+.audit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  align-self: stretch;
+}
+
+.audit-btn span {
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.audit-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.breakdown {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.seg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: default;
+}
+
+.seg i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+.seg .v {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.seg .l {
+  color: var(--muted);
+}
+
 .stat.review {
   cursor: pointer;
   border-color: rgba(248, 113, 113, 0.4);

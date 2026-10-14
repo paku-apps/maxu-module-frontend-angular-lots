@@ -7,6 +7,8 @@ import {
   fmtInt,
   fmtNum,
   fmtPct,
+  numeroStatusColor,
+  numeroStatusLabel,
   statusLabel,
 } from '../../core/format';
 
@@ -44,6 +46,8 @@ export class LotDetail {
   readonly fmtInt = fmtInt;
   readonly fmtPct = fmtPct;
   readonly statusLabel = statusLabel;
+  readonly numeroStatusLabel = numeroStatusLabel;
+  readonly numeroStatusColor = numeroStatusColor;
 
   readonly fields: { value: CorrectableField; label: string }[] = [
     { value: 'area_m2', label: 'Área (m²)' },

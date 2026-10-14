@@ -29,9 +29,29 @@
     <span class="bar"><i [style.width.%]="ratio(s?.con_frente)"></i></span>
   </div>
 
+  <button type="button" class="stat recovered" (click)="filterRecuperados.emit()" title="Ver lotes recuperados">
+    <span class="value">{{ fmtInt(s?.recuperados) }}</span>
+    <span class="label">Recuperados</span>
+    <span class="bar"><i class="indigo" [style.width.%]="ratio(s?.recuperados)"></i></span>
+  </button>
+
   <button type="button" class="stat review" (click)="openReview.emit()">
     <span class="value">{{ fmtInt(s?.review_pending) }}</span>
     <span class="label">Revisión pendiente</span>
     <span class="dot"></span>
   </button>
+
+  <button type="button" class="audit-btn" (click)="openAudit.emit()" title="Panel de auditoría de calidad">
+    <span>◔</span> Auditoría
+  </button>
+</div>
+
+<div class="breakdown">
+  @for (n of numStatus(); track n.key) {
+    <button type="button" class="seg" [style.--c]="n.color">
+      <i></i>
+      <span class="v">{{ fmtInt(n.value) }}</span>
+      <span class="l">{{ n.label }}</span>
+    </button>
+  }
 </div>

@@ -1,0 +1,72 @@
+<div class="panel">
+  <header class="panel-head">
+    <div>
+      <h2>Auditoría geométrica</h2>
+      <p>Calidad de manzanas, numeración y áreas verdes</p>
+    </div>
+    <button type="button" class="ghost" (click)="close.emit()">✕</button>
+  </header>
+
+  @if (loading() && !audit()) {
+    <div class="loading">Cargando auditoría…</div>
+  }
+
+  @if (cards().length) {
+    <div class="cards">
+      @for (c of cards(); track c.key) {
+        <div class="card" [attr.data-tone]="c.tone">
+          <span class="v">{{ fmtInt(c.value) }}</span>
+          <span class="l">{{ c.label }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <h4 class="section">Manzanas en revisión manual ({{ revision().length }})</h4>
+  <div class="mz-list">
+    @for (m of revision(); track m.codigo) {
+      <button type="button" class="mz" (click)="selectManzana.emit(m.codigo)">
+        <span class="mz-head">
+          <span class="code">{{ m.codigo }}</span>
+          <span class="estado" [attr.data-estado]="m.estado">{{ m.estado }}</span>
+        </span>
+        <span class="tags">
+          @if (count(m.faltantes)) {
+            <span class="tag warn">faltan {{ count(m.faltantes) }}</span>
+          }
+          @if (count(m.duplicados)) {
+            <span class="tag bad">dup {{ count(m.duplicados) }}</span>
+          }
+          @if (count(m.outliers)) {
+            <span class="tag info">outliers {{ count(m.outliers) }}</span>
+          }
+          @if (count(m.areas_verdes)) {
+            <span class="tag good">verde {{ count(m.areas_verdes) }}</span>
+          }
+          @if (!count(m.faltantes) && !count(m.duplicados) && !count(m.outliers) && !count(m.areas_verdes)) {
+            <span class="tag">sin incidencias</span>
+          }
+        </span>
+      </button>
+    } @empty {
+      @if (!loading()) {
+        <p class="empty">Sin manzanas marcadas para revisión.</p>
+      }
+    }
+  </div>
+
+  @if (audit(); as a) {
+    @if (a.areas_verdes.length) {
+      <h4 class="section">Áreas verdes detectadas ({{ a.areas_verdes.length }})</h4>
+      <ul class="verde-list">
+        @for (v of a.areas_verdes; track $index) {
+          <li>
+            <span class="swatch"></span>
+            <span class="area">{{ fmtNum(v.area_m2, 1) }} m²</span>
+            <span class="coords">{{ fmtNum(v.center[0], 0) }}, {{ fmtNum(v.center[1], 0) }}</span>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

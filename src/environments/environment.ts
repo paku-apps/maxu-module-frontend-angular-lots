@@ -1,10 +1,9 @@
 export const environment = {
   production: false,
   /**
-   * Base de la API.
-   * Dejado vacío para usar el proxy de desarrollo (proxy.conf.json) y evitar CORS.
-   * Si quieres apuntar directo al backend, usa "http://localhost:8000"
-   * (requiere CORSMiddleware en api/main.py).
+   * Base de la API. El backend tiene CORS habilitado (allow_origins="*"),
+   * así que se puede llamar directo desde otro origen.
+   * Si prefieres usar el proxy de desarrollo (proxy.conf.json), deja "".
    */
-  apiBase: '',
+  apiBase: 'http://127.0.0.1:8000',
 };

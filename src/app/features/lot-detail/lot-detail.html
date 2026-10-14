@@ -28,6 +28,9 @@
     @if (l.review_required) {
       <div class="flag review">Requiere revisión manual</div>
     }
+    @if (l.numero_status === 'recuperado') {
+      <div class="flag info">Número recuperado por deducción geométrica</div>
+    }
     @if (l.geometry_semantic_mismatch) {
       <div class="flag warn">Posible desajuste geometría / número</div>
     }
@@ -68,7 +71,13 @@
             </div>
             <div class="cell">
               <span class="k">Estado número</span>
-              <span class="v">{{ l.numero_status ?? '—' }}</span>
+              <span class="v">
+                <span class="num-badge" [style.--c]="numeroStatusColor(l.numero_status)">{{ numeroStatusLabel(l.numero_status) }}</span>
+              </span>
+            </div>
+            <div class="cell">
+              <span class="k">OCR número</span>
+              <span class="v">{{ l.numero_ocr_score ?? '—' }}</span>
             </div>
             <div class="cell">
               <span class="k">N.º de medidas</span>

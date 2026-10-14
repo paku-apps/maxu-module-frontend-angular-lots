@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  AuditResponse,
+  AuditRevisionItem,
   CorrectionBody,
   CorrectionResult,
   FeatureCollection,
@@ -34,6 +36,18 @@ export class ApiService {
 
   getStats(): Observable<Stats> {
     return this.http.get<Stats>(`${this.base}/stats`);
+  }
+
+  getHealth(): Observable<{ status: string; api_version: string }> {
+    return this.http.get<{ status: string; api_version: string }>(`${this.base}/health`);
+  }
+
+  getAudit(): Observable<AuditResponse> {
+    return this.http.get<AuditResponse>(`${this.base}/audit`);
+  }
+
+  getAuditRevision(): Observable<AuditRevisionItem[]> {
+    return this.http.get<AuditRevisionItem[]>(`${this.base}/audit/revision`);
   }
 
   getManzanas(): Observable<Manzana[]> {

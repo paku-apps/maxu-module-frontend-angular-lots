@@ -1,4 +1,4 @@
-import { AreaStatus, Confidence, GeoFeatureProps, ReviewPriority } from './models';
+import { AreaStatus, Confidence, GeoFeatureProps, NumeroStatus, ReviewPriority } from './models';
 
 export function fmtNum(value: number | null | undefined, digits = 2): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—';
@@ -31,10 +31,38 @@ export function statusLabel(status: AreaStatus): string {
       return 'Validada';
     case 'documental_mismatch':
       return 'Discrepancia';
+    case 'geometrica':
+      return 'Geométrica';
     case 'missing':
       return 'Sin área';
     default:
       return status ?? '—';
+  }
+}
+
+export function numeroStatusLabel(status: NumeroStatus): string {
+  switch (status) {
+    case 'observed':
+      return 'Observado';
+    case 'deduccion':
+      return 'Deducción';
+    case 'recuperado':
+      return 'Recuperado';
+    default:
+      return '—';
+  }
+}
+
+export function numeroStatusColor(status: NumeroStatus): string {
+  switch (status) {
+    case 'recuperado':
+      return 'var(--accent-2)';
+    case 'deduccion':
+      return 'var(--warn)';
+    case 'observed':
+      return 'var(--good)';
+    default:
+      return 'var(--muted)';
   }
 }
 

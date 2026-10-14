@@ -97,6 +97,23 @@
   background: rgba(251, 191, 36, 0.08);
 }
 
+.flag.info {
+  color: var(--accent-2);
+  border-color: rgba(129, 140, 248, 0.4);
+  background: rgba(129, 140, 248, 0.1);
+}
+
+.num-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 20px;
+  color: var(--c);
+  border: 1px solid var(--c);
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+}
+
 .tabs {
   display: flex;
   gap: 4px;

@@ -211,35 +211,77 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 10px 12px;
-  min-height: 128px;
-  max-height: 180px;
+  min-height: 150px;
+  max-height: 215px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   overflow: hidden;
 }
 
-.strip-head {
+.filterbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fb-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
-.strip-head strong {
+.chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.chip.on {
+  color: #06121f;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.chip.off {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+.fb-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.fb-count {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text);
-  font-size: 13px;
 }
 
 .link {
-  margin-left: auto;
   background: none;
   border: none;
   color: var(--accent);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
+  padding: 0;
 }
 
 .cards {
@@ -336,6 +378,10 @@
   z-index: 41;
   animation: slide-in 0.22s ease;
   overflow: hidden;
+}
+
+.drawer.wide {
+  width: 540px;
 }
 
 @keyframes slide-in {

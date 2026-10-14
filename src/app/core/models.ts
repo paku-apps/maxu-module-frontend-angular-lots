@@ -1,4 +1,4 @@
-export type NumeroStatus = 'observed' | 'deduccion' | null;
+export type NumeroStatus = 'observed' | 'deduccion' | 'recuperado' | null;
 export type AreaStatus =
   | 'documental_validated'
   | 'documental_mismatch'
@@ -20,6 +20,7 @@ export interface Lote {
   numero: number | null;
   numero_original: number | null;
   numero_status: NumeroStatus;
+  numero_ocr_score: number | null;
   area_m2: number | null;
   area_geom_m2: number | null;
   area_error_percent: number | null;
@@ -75,6 +76,8 @@ export interface Stats {
   con_numero: number;
   con_frente: number;
   review_pending: number;
+  por_numero_status: Record<string, number>;
+  recuperados: number;
 }
 
 export interface LotesPage {
@@ -135,11 +138,58 @@ export interface ReviewPage {
   items: ReviewCase[];
 }
 
+export interface AuditStats {
+  manzanas: number;
+  limpias: number;
+  con_huecos: number;
+  con_duplicados: number;
+  huecos_total: number;
+  duplicados_total: number;
+  lotes_sin_numero: number;
+  areas_verdes_detectadas: number;
+  manzanas_con_area_verde: string[];
+}
+
+export interface AuditManzana {
+  codigo: string;
+  n_lotes?: number;
+  sin_numero?: number;
+  numeros?: number[];
+  duplicados: Record<string, number>;
+  faltantes: number[];
+  outliers: number[];
+  areas_verdes: number[];
+  estado: string;
+  rango?: [number, number];
+}
+
+export interface AuditAreaVerde {
+  area_u2: number;
+  area_m2: number;
+  center: [number, number];
+  bounds: [number, number, number, number];
+  polygon: [number, number][];
+}
+
+export interface AuditResponse {
+  stats: AuditStats;
+  manzanas: AuditManzana[];
+  revision_manual: AuditManzana[];
+  areas_verdes: AuditAreaVerde[];
+  version?: number;
+  source?: string;
+  crs?: unknown;
+}
+
+export type AuditRevisionItem = AuditManzana;
+
 export interface LotesQuery {
   manzana?: string | null;
   numero?: number | null;
   con_area?: boolean;
   review_required?: boolean;
+  numero_status?: NumeroStatus | string;
+  recuperado?: boolean;
   limit?: number;
   offset?: number;
 }

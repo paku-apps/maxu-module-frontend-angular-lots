@@ -8,7 +8,12 @@
       </div>
     </div>
 
-    <app-stats-bar [stats]="store.stats()" (openReview)="toggleReview()" />
+    <app-stats-bar
+      [stats]="store.stats()"
+      (openReview)="toggleReview()"
+      (openAudit)="toggleAudit()"
+      (filterRecuperados)="toggleRecuperado()"
+    />
 
     <div class="tools">
       <div class="seg">
@@ -75,36 +80,70 @@
       </div>
 
       <div class="strip">
-        @if (store.selectedManzana(); as mz) {
-          <div class="strip-head">
-            <strong>{{ mz }}</strong>
-            <span>{{ lotes().length }} lotes</span>
-            <button type="button" class="link" (click)="store.selectManzana(null)">ver todas</button>
-          </div>
-          <div class="cards">
-            @for (item of lotes(); track item.id) {
-              <button
-                type="button"
-                class="lot-card"
-                [class.active]="store.selectedLoteId() === item.id"
-                (click)="store.selectLote(item.id)"
-              >
-                <span class="lc-top">
-                  <span class="num">{{ item.numero ?? 's/n' }}</span>
-                  <i class="dot" [style.background]="lotColor(item)"></i>
-                </span>
-                <span class="lc-area">{{ fmtNum(item.area_m2, 1) }} m²</span>
-                <span class="lc-id">{{ item.id }}</span>
-              </button>
-            } @empty {
-              <p class="strip-empty">Cargando lotes…</p>
+        <div class="filterbar">
+          <span class="fb-label">Número</span>
+          @for (st of numeroStatuses; track st) {
+            <button type="button" class="chip" [class.on]="filterNumeroStatus() === st" (click)="toggleNumeroStatus(st)">
+              {{ st }}
+            </button>
+          }
+          <button type="button" class="chip" [class.on]="filterRecuperado()" (click)="toggleRecuperado()">Recuperados</button>
+          <span class="fb-sep"></span>
+          <button
+            type="button"
+            class="chip"
+            [class.on]="filterReview() === true"
+            [class.off]="filterReview() === false"
+            (click)="toggleReviewFilter()"
+          >Revisión @if (filterReview() === true) {· sí} @if (filterReview() === false) {· no}</button>
+          <button
+            type="button"
+            class="chip"
+            [class.on]="filterConArea() === true"
+            [class.off]="filterConArea() === false"
+            (click)="toggleConArea()"
+          >Área @if (filterConArea() === true) {· sí} @if (filterConArea() === false) {· no}</button>
+
+          @if (store.filtersActive()) {
+            <button type="button" class="link" (click)="clearFilters()">Limpiar</button>
+          }
+
+          <span class="fb-count">
+            @if (store.filtersActive()) {
+              {{ store.filteredTotal() }} resultados
+            } @else if (store.selectedManzana(); as mz) {
+              {{ mz }} · {{ lotes().length }} lotes
             }
-          </div>
-        } @else {
-          <div class="strip-idle">
-            <span>Selecciona una manzana para ver su banda de lotes, o haz clic directo en el plano.</span>
-          </div>
-        }
+          </span>
+
+          @if (store.selectedManzana()) {
+            <button type="button" class="link" (click)="store.selectManzana(null)">ver todas</button>
+          }
+        </div>
+
+        <div class="cards">
+          @for (item of displayLotes(); track item.id) {
+            <button
+              type="button"
+              class="lot-card"
+              [class.active]="store.selectedLoteId() === item.id"
+              (click)="store.selectLote(item.id)"
+            >
+              <span class="lc-top">
+                <span class="num">{{ item.numero ?? 's/n' }}</span>
+                <i class="dot" [style.background]="lotColor(item)"></i>
+              </span>
+              <span class="lc-area">{{ fmtNum(item.area_m2, 1) }} m²</span>
+              <span class="lc-id">{{ item.id }}</span>
+            </button>
+          } @empty {
+            @if (store.loading().lotes || store.loading().manzanas) {
+              <p class="strip-empty">Cargando lotes…</p>
+            } @else {
+              <p class="strip-empty">Sin lotes. Selecciona una manzana o ajusta los filtros.</p>
+            }
+          }
+        </div>
       </div>
     </section>
 
@@ -136,6 +175,19 @@
       (openCase)="store.openReviewCase($event)"
       (save)="store.saveReviewCase($event.id, $event.status, $event.observations)"
       (back)="store.activeReviewCase.set(null)"
+    />
+  </aside>
+}
+
+@if (auditOpen()) {
+  <div class="overlay" (click)="closeAudit()"></div>
+  <aside class="drawer wide" (click)="$event.stopPropagation()">
+    <app-audit-panel
+      [audit]="store.audit()"
+      [revision]="store.auditRevision()"
+      [loading]="store.loading().audit"
+      (close)="closeAudit()"
+      (selectManzana)="goToManzana($event)"
     />
   </aside>
 }

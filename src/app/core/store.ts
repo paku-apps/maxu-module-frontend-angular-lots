@@ -2,11 +2,14 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
 import {
+  AuditResponse,
+  AuditRevisionItem,
   CorrectionBody,
   CorrectionResult,
   FeatureCollection,
   Lote,
   LoteItem,
+  LotesQuery,
   Manzana,
   ManzanaDetalle,
   ReviewCase,
@@ -20,7 +23,7 @@ export interface Toast {
   text: string;
 }
 
-type LoadingKey = 'stats' | 'manzanas' | 'geo' | 'lote' | 'review';
+type LoadingKey = 'stats' | 'manzanas' | 'geo' | 'lote' | 'review' | 'audit' | 'lotes';
 
 @Injectable({ providedIn: 'root' })
 export class AppStore {
@@ -38,6 +41,11 @@ export class AppStore {
   readonly reviewCases = signal<ReviewCase[]>([]);
   readonly reviewTotal = signal(0);
   readonly activeReviewCase = signal<ReviewCaseDetail | null>(null);
+  readonly audit = signal<AuditResponse | null>(null);
+  readonly auditRevision = signal<AuditRevisionItem[]>([]);
+  readonly filteredLotes = signal<LoteItem[]>([]);
+  readonly filteredTotal = signal(0);
+  readonly filtersActive = signal(false);
   readonly toasts = signal<Toast[]>([]);
 
   readonly loading = signal({
@@ -46,6 +54,8 @@ export class AppStore {
     geo: false,
     lote: false,
     review: false,
+    audit: false,
+    lotes: false,
   });
 
   readonly hasSelection = computed(() => this.selectedManzana() !== null);
@@ -99,6 +109,7 @@ export class AppStore {
     this.selectedLoteId.set(null);
     this.selectedLote.set(null);
     this.manzanaDetail.set(null);
+    this.clearLotesFilters();
     await this.loadGeo();
     if (codigo) {
       await this.loadManzanaDetail(codigo);
@@ -129,6 +140,47 @@ export class AppStore {
       this.notify('error', `No se pudo cargar el lote ${id}.`);
     } finally {
       this.patchLoading('lote', false);
+    }
+  }
+
+  // ---- Filtros de lotes (/lotes) ------------------------------------------
+  async queryLotes(query: LotesQuery): Promise<void> {
+    this.patchLoading('lotes', true);
+    try {
+      const page = await firstValueFrom(
+        this.api.getLotes({ ...query, limit: query.limit ?? 800 }),
+      );
+      this.filteredLotes.set(page.items);
+      this.filteredTotal.set(page.total);
+      this.filtersActive.set(true);
+      if (page.total === 0) this.notify('info', 'Ningún lote coincide con los filtros.');
+    } catch (e) {
+      this.notify('error', 'No se pudieron aplicar los filtros de lotes.');
+    } finally {
+      this.patchLoading('lotes', false);
+    }
+  }
+
+  clearLotesFilters(): void {
+    this.filteredLotes.set([]);
+    this.filteredTotal.set(0);
+    this.filtersActive.set(false);
+  }
+
+  // ---- Auditoría (/audit) --------------------------------------------------
+  async loadAudit(): Promise<void> {
+    this.patchLoading('audit', true);
+    try {
+      const [audit, revision] = await Promise.all([
+        firstValueFrom(this.api.getAudit()),
+        firstValueFrom(this.api.getAuditRevision()),
+      ]);
+      this.audit.set(audit);
+      this.auditRevision.set(revision);
+    } catch (e) {
+      this.notify('error', 'No se pudo cargar la auditoría.');
+    } finally {
+      this.patchLoading('audit', false);
     }
   }
 
