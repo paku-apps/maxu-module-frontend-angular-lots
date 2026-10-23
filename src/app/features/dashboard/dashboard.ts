@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { AppStore } from '../../core/store';
-import { CorrectionBody, LoteItem, LotesQuery } from '../../core/models';
+import { CorrectionBody, LoteItem, LotesQuery, Plano } from '../../core/models';
 import { fmtNum } from '../../core/format';
 import { MapCanvas, MapColorMode } from '../map-canvas/map-canvas';
 import { ManzanaList } from '../manzana-list/manzana-list';
@@ -8,10 +8,11 @@ import { StatsBar } from '../stats-bar/stats-bar';
 import { LotDetail } from '../lot-detail/lot-detail';
 import { ReviewPanel } from '../review-panel/review-panel';
 import { AuditPanel } from '../audit-panel/audit-panel';
+import { PlanPicker } from '../plan-picker/plan-picker';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MapCanvas, ManzanaList, StatsBar, LotDetail, ReviewPanel, AuditPanel],
+  imports: [MapCanvas, ManzanaList, StatsBar, LotDetail, ReviewPanel, AuditPanel, PlanPicker],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,8 +26,11 @@ export class Dashboard {
   readonly rotations = [0, 90, 180, 270];
   readonly reviewOpen = signal(false);
   readonly auditOpen = signal(false);
+  readonly planSwitchOpen = signal(false);
   readonly reviewStatus = signal('');
   readonly reviewPriority = signal('');
+
+  readonly showPicker = computed(() => !this.store.selectedPlano() || this.planSwitchOpen());
 
   // Filtros de lotes
   readonly filterNumeroStatus = signal('');
@@ -41,7 +45,7 @@ export class Dashboard {
   );
 
   readonly fmtNum = fmtNum;
-  readonly numeroStatuses = ['observed', 'deduccion', 'recuperado'];
+  readonly numeroStatuses = ['observed', 'deduccion', 'recuperado', 'raster_pendiente'];
 
   constructor() {
     void this.store.bootstrap();
@@ -58,6 +62,19 @@ export class Dashboard {
 
   setRotation(event: Event): void {
     this.rotation.set(Number((event.target as HTMLSelectElement).value));
+  }
+
+  onSelectPlano(plano: Plano): void {
+    this.planSwitchOpen.set(false);
+    void this.store.selectPlano(plano);
+  }
+
+  reload(): void {
+    if (this.store.selectedPlano()) {
+      void this.store.refresh();
+    } else {
+      void this.store.loadPlanos();
+    }
   }
 
   // ---- Revisión -----------------------------------------------------------

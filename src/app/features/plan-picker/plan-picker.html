@@ -1,0 +1,50 @@
+<div class="backdrop">
+  <div class="modal" [class.switching]="!!current()">
+    <header>
+      <div class="icon">▦</div>
+      <div class="titles">
+        <h2>{{ current() ? 'Cambiar de plano' : 'Selecciona un plano' }}</h2>
+        <p>Elige el plano cargado para explorar su segmentación de lotes y manzanas</p>
+      </div>
+      @if (current()) {
+        <button type="button" class="ghost" (click)="close.emit()">✕</button>
+      }
+    </header>
+
+    @if (loading()) {
+      <div class="loading">Cargando planos…</div>
+    } @else if (planos().length === 0) {
+      <div class="empty">
+        No hay planos cargados en el backend.
+        <small>Procesa un PDF para generar un run y vuelve a intentar.</small>
+      </div>
+    } @else {
+      <div class="grid">
+        @for (p of planos(); track p.run_id) {
+          <button
+            type="button"
+            class="plan"
+            [class.active]="current()?.run_id === p.run_id"
+            (click)="select.emit(p)"
+          >
+            <span class="top">
+              <span class="name">{{ p.plano }}</span>
+              @if (p.version) {
+                <span class="version">v{{ p.version }}</span>
+              }
+            </span>
+            <span class="meta">
+              <span><b>{{ fmtInt(p.n_lotes) }}</b> lotes</span>
+              <span>pág. {{ p.page }}</span>
+              <span>run #{{ p.run_id }}</span>
+            </span>
+            @if (current()?.run_id === p.run_id) {
+              <span class="badge">seleccionado</span>
+            }
+            <span class="cta">{{ current()?.run_id === p.run_id ? 'Continuar' : 'Explorar' }} →</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

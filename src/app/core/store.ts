@@ -12,6 +12,7 @@ import {
   LotesQuery,
   Manzana,
   ManzanaDetalle,
+  Plano,
   ReviewCase,
   ReviewCaseDetail,
   Stats,
@@ -23,7 +24,7 @@ export interface Toast {
   text: string;
 }
 
-type LoadingKey = 'stats' | 'manzanas' | 'geo' | 'lote' | 'review' | 'audit' | 'lotes';
+type LoadingKey = 'stats' | 'manzanas' | 'geo' | 'lote' | 'review' | 'audit' | 'lotes' | 'planos';
 
 @Injectable({ providedIn: 'root' })
 export class AppStore {
@@ -31,6 +32,8 @@ export class AppStore {
   private toastSeq = 0;
 
   // ---- Estado global -------------------------------------------------------
+  readonly planos = signal<Plano[]>([]);
+  readonly selectedPlano = signal<Plano | null>(null);
   readonly stats = signal<Stats | null>(null);
   readonly manzanas = signal<Manzana[]>([]);
   readonly selectedManzana = signal<string | null>(null);
@@ -56,13 +59,39 @@ export class AppStore {
     review: false,
     audit: false,
     lotes: false,
+    planos: false,
   });
 
   readonly hasSelection = computed(() => this.selectedManzana() !== null);
 
   // ---- Carga inicial -------------------------------------------------------
   async bootstrap(): Promise<void> {
-    await Promise.allSettled([this.loadStats(), this.loadManzanas(), this.loadGeo()]);
+    await this.loadPlanos();
+  }
+
+  async loadPlanos(): Promise<void> {
+    this.patchLoading('planos', true);
+    try {
+      this.planos.set(await firstValueFrom(this.api.getPlanos()));
+    } catch (e) {
+      this.notify('error', 'No se pudieron cargar los planos. ¿Backend en 127.0.0.1:8000?');
+    } finally {
+      this.patchLoading('planos', false);
+    }
+  }
+
+  async selectPlano(plano: Plano): Promise<void> {
+    this.selectedPlano.set(plano);
+    this.selectedManzana.set(null);
+    this.selectedLoteId.set(null);
+    this.selectedLote.set(null);
+    this.manzanaDetail.set(null);
+    this.clearLotesFilters();
+    await Promise.allSettled([this.loadManzanas(), this.loadStats(), this.loadGeo()]);
+  }
+
+  async refresh(): Promise<void> {
+    await Promise.allSettled([this.loadManzanas(), this.loadStats(), this.loadGeo()]);
   }
 
   async loadStats(): Promise<void> {
@@ -79,7 +108,8 @@ export class AppStore {
   async loadManzanas(): Promise<void> {
     this.patchLoading('manzanas', true);
     try {
-      const list = await firstValueFrom(this.api.getManzanas());
+      const plano = this.selectedPlano()?.plano ?? null;
+      const list = await firstValueFrom(this.api.getManzanas(plano));
       this.manzanas.set([...list].sort((a, b) => b.n_lotes - a.n_lotes));
     } catch (e) {
       this.notify('error', 'No se pudieron cargar las manzanas.');
@@ -92,8 +122,9 @@ export class AppStore {
     this.patchLoading('geo', true);
     try {
       const manzana = this.selectedManzana();
+      const plano = this.selectedPlano()?.plano ?? null;
       const geo = await firstValueFrom(
-        this.api.getGeoJson({ manzana, limit: manzana ? 8000 : 5000 }),
+        this.api.getGeoJson({ manzana, plano, limit: manzana ? 8000 : 5000 }),
       );
       this.geojson.set(geo);
     } catch (e) {
@@ -147,8 +178,9 @@ export class AppStore {
   async queryLotes(query: LotesQuery): Promise<void> {
     this.patchLoading('lotes', true);
     try {
+      const plano = this.selectedPlano()?.plano ?? null;
       const page = await firstValueFrom(
-        this.api.getLotes({ ...query, limit: query.limit ?? 800 }),
+        this.api.getLotes({ plano, ...query, limit: query.limit ?? 800 }),
       );
       this.filteredLotes.set(page.items);
       this.filteredTotal.set(page.total);

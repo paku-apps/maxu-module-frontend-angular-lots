@@ -14,6 +14,7 @@ import {
   LotesQuery,
   Manzana,
   ManzanaDetalle,
+  Plano,
   ReviewCaseDetail,
   ReviewPage,
   ReviewQuery,
@@ -50,8 +51,14 @@ export class ApiService {
     return this.http.get<AuditRevisionItem[]>(`${this.base}/audit/revision`);
   }
 
-  getManzanas(): Observable<Manzana[]> {
-    return this.http.get<Manzana[]>(`${this.base}/manzanas`);
+  getPlanos(): Observable<Plano[]> {
+    return this.http.get<Plano[]>(`${this.base}/planos`);
+  }
+
+  getManzanas(plano?: string | null): Observable<Manzana[]> {
+    return this.http.get<Manzana[]>(`${this.base}/manzanas`, {
+      params: this.buildParams({ plano }),
+    });
   }
 
   getManzana(codigo: string): Observable<ManzanaDetalle> {

@@ -48,6 +48,8 @@ export function numeroStatusLabel(status: NumeroStatus): string {
       return 'Deducción';
     case 'recuperado':
       return 'Recuperado';
+    case 'raster_pendiente':
+      return 'Raster pendiente';
     default:
       return '—';
   }
@@ -59,6 +61,8 @@ export function numeroStatusColor(status: NumeroStatus): string {
       return 'var(--accent-2)';
     case 'deduccion':
       return 'var(--warn)';
+    case 'raster_pendiente':
+      return 'var(--muted)';
     case 'observed':
       return 'var(--good)';
     default:

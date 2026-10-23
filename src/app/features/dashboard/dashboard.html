@@ -16,6 +16,14 @@
     />
 
     <div class="tools">
+      @if (store.selectedPlano(); as p) {
+        <button type="button" class="plan-chip" (click)="planSwitchOpen.set(true)" title="Cambiar de plano">
+          <span class="pc-name">▤ {{ p.plano }}</span>
+          <span class="pc-meta">
+            @if (p.version) { v{{ p.version }} · }{{ p.n_lotes }} lotes · run #{{ p.run_id }}
+          </span>
+        </button>
+      }
       <div class="seg">
         <button type="button" [class.on]="colorMode() === 'review'" (click)="setColorMode('review')">
           Revisión
@@ -36,7 +44,7 @@
           }
         </select>
       </label>
-      <button type="button" class="btn" (click)="store.bootstrap()" title="Recargar">⟳</button>
+      <button type="button" class="btn" (click)="reload()" title="Recargar">⟳</button>
     </div>
   </header>
 
@@ -159,6 +167,16 @@
     </aside>
   </main>
 </div>
+
+@if (showPicker()) {
+  <app-plan-picker
+    [planos]="store.planos()"
+    [loading]="store.loading().planos"
+    [current]="store.selectedPlano()"
+    (select)="onSelectPlano($event)"
+    (close)="planSwitchOpen.set(false)"
+  />
+}
 
 @if (reviewOpen()) {
   <div class="overlay" (click)="closeReview()"></div>

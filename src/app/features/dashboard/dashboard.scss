@@ -58,6 +58,38 @@
   gap: 10px;
 }
 
+.plan-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  max-width: 230px;
+}
+
+.plan-chip:hover {
+  border-color: var(--accent);
+}
+
+.pc-name {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.pc-meta {
+  font-size: 10px;
+  color: var(--muted);
+}
+
 .seg {
   display: flex;
   border: 1px solid var(--border);

@@ -1,4 +1,4 @@
-export type NumeroStatus = 'observed' | 'deduccion' | 'recuperado' | null;
+export type NumeroStatus = 'observed' | 'deduccion' | 'recuperado' | 'raster_pendiente' | null;
 export type AreaStatus =
   | 'documental_validated'
   | 'documental_mismatch'
@@ -16,6 +16,8 @@ export interface Confidence {
 
 export interface Lote {
   id: string;
+  run_id?: number;
+  plano?: string | null;
   manzana: string | null;
   numero: number | null;
   numero_original: number | null;
@@ -63,6 +65,8 @@ export interface Manzana {
   codigo: string;
   n_lotes: number;
   confidence: number;
+  run_id?: number;
+  plano?: string;
 }
 
 export interface ManzanaDetalle extends Manzana {
@@ -89,6 +93,8 @@ export interface LotesPage {
 
 export interface GeoFeatureProps {
   id: string;
+  run_id?: number;
+  plano?: string | null;
   manzana: string | null;
   numero: number | null;
   area_m2: number | null;
@@ -112,6 +118,16 @@ export interface FeatureCollection {
   name: string;
   crs: unknown;
   features: GeoFeature[];
+}
+
+export interface Plano {
+  run_id: number;
+  plano: string;
+  page: number;
+  version: string | null;
+  processed_at?: string | null;
+  units_per_meter?: number | null;
+  n_lotes: number;
 }
 
 export type ReviewPriority = 'low' | 'medium' | 'high' | (string & {});
@@ -190,12 +206,15 @@ export interface LotesQuery {
   review_required?: boolean;
   numero_status?: NumeroStatus | string;
   recuperado?: boolean;
+  plano?: string | null;
+  run_id?: number | null;
   limit?: number;
   offset?: number;
 }
 
 export interface GeoQuery {
   manzana?: string | null;
+  plano?: string | null;
   limit?: number;
 }
 
